@@ -325,13 +325,17 @@ impl Repl {
         self.prompt.set_agent(&self.current_agent_label);
 
         // Update runtime permission mode based on profile
-        if next == AgentProfile::Plan {
-            self.runtime.set_permission_mode(PermissionMode::Plan);
+        match next {
+            AgentProfile::Build => self.runtime.set_permission_mode(PermissionMode::BypassPermissions),
+            AgentProfile::Plan => self.runtime.set_permission_mode(PermissionMode::Plan),
+            _ => self.runtime.set_permission_mode(PermissionMode::Default),
         }
 
         eprintln!("\n[agent] Switched to @{} mode", next.label());
-        if next == AgentProfile::Plan {
-            eprintln!("[agent] Plan mode: file edits and shell commands are disabled");
+        match next {
+            AgentProfile::Plan => eprintln!("[agent] Plan mode: file edits and shell commands are disabled"),
+            AgentProfile::Build => eprintln!("[agent] Build mode: all tools auto-approved"),
+            _ => {}
         }
     }
 
@@ -717,10 +721,10 @@ impl Repl {
                         self.agent_profile = *profile;
                         self.current_agent_label = format!("@{}", profile.label());
                         self.prompt.set_agent(&self.current_agent_label);
-                        if *profile == AgentProfile::Plan {
-                            self.runtime.set_permission_mode(PermissionMode::Plan);
-                        } else {
-                            self.runtime.set_permission_mode(PermissionMode::Default);
+                        match *profile {
+                            AgentProfile::Build => self.runtime.set_permission_mode(PermissionMode::BypassPermissions),
+                            AgentProfile::Plan => self.runtime.set_permission_mode(PermissionMode::Plan),
+                            _ => self.runtime.set_permission_mode(PermissionMode::Default),
                         }
                         if let ReplOutput::Tui(st) = &out
                             && let Ok(mut g) = st.lock()
@@ -1776,10 +1780,10 @@ impl Repl {
                     let next = self.agent_profile.next();
                     self.agent_profile = next;
                     self.current_agent_label = format!("@{}", next.label());
-                    if next == AgentProfile::Plan {
-                        self.runtime.set_permission_mode(PermissionMode::Plan);
-                    } else {
-                        self.runtime.set_permission_mode(PermissionMode::Default);
+                    match next {
+                        AgentProfile::Build => self.runtime.set_permission_mode(PermissionMode::BypassPermissions),
+                        AgentProfile::Plan => self.runtime.set_permission_mode(PermissionMode::Plan),
+                        _ => self.runtime.set_permission_mode(PermissionMode::Default),
                     }
                     if let Ok(mut g) = tui_state.lock() {
                         g.set_agent_profile(&self.current_agent_label);
@@ -1887,10 +1891,10 @@ impl Repl {
                     if let Some(&profile) = AgentProfile::ALL.get(idx) {
                         self.agent_profile = profile;
                         self.current_agent_label = format!("@{}", profile.label());
-                        if profile == AgentProfile::Plan {
-                            self.runtime.set_permission_mode(PermissionMode::Plan);
-                        } else {
-                            self.runtime.set_permission_mode(PermissionMode::Default);
+                        match profile {
+                            AgentProfile::Build => self.runtime.set_permission_mode(PermissionMode::BypassPermissions),
+                            AgentProfile::Plan => self.runtime.set_permission_mode(PermissionMode::Plan),
+                            _ => self.runtime.set_permission_mode(PermissionMode::Default),
                         }
                         if let Ok(mut g) = tui_state.lock() {
                             g.set_agent_profile(&self.current_agent_label);
